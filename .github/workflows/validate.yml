@@ -1,0 +1,85 @@
+name: RTL v0.1 Validation
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate RTL (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+          - "3.12"
+          - "3.13"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Display Python version
+        run: python --version
+
+      - name: Validate JSON configuration
+        run: |
+          python -m json.tool configs/experiment-v0.1.json > /dev/null
+
+      - name: Run unit tests
+        run: |
+          python -m unittest discover -s tests -v
+
+      - name: Run Stage 1 experiment
+        run: |
+          python scripts/run_experiment.py
+
+      - name: Verify generated report
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("results/stage1-results.json")
+
+          if not path.is_file():
+              raise SystemExit("FAIL: Result report not found.")
+
+          with path.open(encoding="utf-8") as file:
+              report = json.load(file)
+
+          assert report["experiment_id"] == "RTL-EXP-0.1"
+          assert report["spec_version"] == "0.1.0"
+          assert report["stage"] == 1
+          assert report["status"] == "PASS"
+          assert report["evaluation"]["status"] == "PASS"
+          assert report["reproducibility"]["status"] == "PASS"
+
+          summary = report["evaluation"]["summary"]
+
+          assert summary["total_topologies"] == 3
+          assert summary["passed_topologies"] == 3
+          assert summary["failed_topologies"] == 0
+
+          print("PASS: Generated report verified.")
+          PY
+
+      - name: Upload experiment report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rtl-stage1-python-${{ matrix.python-version }}
+          path: results/stage1-results.json
+          if-no-files-found: ignore
+          retention-days: 30
