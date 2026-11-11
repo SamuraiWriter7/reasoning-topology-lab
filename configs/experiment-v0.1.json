@@ -1,0 +1,196 @@
+{
+  "experiment_id": "RTL-EXP-0.1",
+  "spec_version": "0.1.0",
+  "stage": 1,
+  "experiment_type": "deterministic_structural_validation",
+  "description": "Controlled mathematical validation of three canonical reasoning network topologies.",
+  "node_count": 3,
+  "nodes": [
+    {
+      "id": "N1",
+      "role": "strategy"
+    },
+    {
+      "id": "N2",
+      "role": "research"
+    },
+    {
+      "id": "N3",
+      "role": "audit"
+    }
+  ],
+  "matrix_convention": {
+    "type": "directed_binary_adjacency",
+    "edge_direction": "row_to_column",
+    "self_loops_allowed": false,
+    "inactive_node_policy": "exclude_from_effective_graph",
+    "reachability": "reflexive",
+    "single_node_reachability_ratio": 1.0,
+    "zero_node_reachability_ratio": 1.0
+  },
+  "numerical_tolerance": {
+    "absolute": 1e-9,
+    "eigenvalue": 1e-9,
+    "cayley_hamilton_residual": 1e-9
+  },
+  "topologies": [
+    {
+      "id": "single",
+      "description": "One active reasoning node without communication edges.",
+      "adjacency_matrix": [
+        [0, 0, 0],
+        [0, 0, 0],
+        [0, 0, 0]
+      ],
+      "active_nodes": ["N1"],
+      "expected": {
+        "rank": 0,
+        "determinant": 0,
+        "eigenvalues": [
+          [0.0, 0.0],
+          [0.0, 0.0],
+          [0.0, 0.0]
+        ],
+        "reachable_pairs": 0,
+        "reachability_ratio": 1.0,
+        "strongly_connected": true
+      }
+    },
+    {
+      "id": "sequential",
+      "description": "Three reasoning nodes connected in a one-way sequence.",
+      "adjacency_matrix": [
+        [0, 1, 0],
+        [0, 0, 1],
+        [0, 0, 0]
+      ],
+      "active_nodes": ["N1", "N2", "N3"],
+      "expected": {
+        "rank": 2,
+        "determinant": 0,
+        "eigenvalues": [
+          [0.0, 0.0],
+          [0.0, 0.0],
+          [0.0, 0.0]
+        ],
+        "reachable_pairs": 3,
+        "reachability_ratio": 0.5,
+        "strongly_connected": false
+      }
+    },
+    {
+      "id": "cyclic",
+      "description": "Three reasoning nodes connected through a directed feedback cycle.",
+      "adjacency_matrix": [
+        [0, 1, 0],
+        [0, 0, 1],
+        [1, 0, 0]
+      ],
+      "active_nodes": ["N1", "N2", "N3"],
+      "expected": {
+        "rank": 3,
+        "determinant": 1,
+        "eigenvalues": [
+          [1.0, 0.0],
+          [-0.5, 0.8660254037844386],
+          [-0.5, -0.8660254037844386]
+        ],
+        "reachable_pairs": 6,
+        "reachability_ratio": 1.0,
+        "strongly_connected": true
+      }
+    }
+  ],
+  "fault_injection": {
+    "enabled": true,
+    "mode": "single_active_node_removal",
+    "reset_before_each_trial": true,
+    "remove_incident_edges": true,
+    "test_all_active_nodes": true,
+    "expected_results": {
+      "single": [
+        {
+          "failed_node": "N1",
+          "surviving_nodes": 0,
+          "reachable_pairs": 0,
+          "reachability_ratio": 1.0,
+          "strongly_connected": true
+        }
+      ],
+      "sequential": [
+        {
+          "failed_node": "N1",
+          "surviving_nodes": 2,
+          "reachable_pairs": 1,
+          "reachability_ratio": 0.5,
+          "strongly_connected": false
+        },
+        {
+          "failed_node": "N2",
+          "surviving_nodes": 2,
+          "reachable_pairs": 0,
+          "reachability_ratio": 0.0,
+          "strongly_connected": false
+        },
+        {
+          "failed_node": "N3",
+          "surviving_nodes": 2,
+          "reachable_pairs": 1,
+          "reachability_ratio": 0.5,
+          "strongly_connected": false
+        }
+      ],
+      "cyclic": [
+        {
+          "failed_node": "N1",
+          "surviving_nodes": 2,
+          "reachable_pairs": 1,
+          "reachability_ratio": 0.5,
+          "strongly_connected": false
+        },
+        {
+          "failed_node": "N2",
+          "surviving_nodes": 2,
+          "reachable_pairs": 1,
+          "reachability_ratio": 0.5,
+          "strongly_connected": false
+        },
+        {
+          "failed_node": "N3",
+          "surviving_nodes": 2,
+          "reachable_pairs": 1,
+          "reachability_ratio": 0.5,
+          "strongly_connected": false
+        }
+      ]
+    }
+  },
+  "validation": {
+    "deterministic": true,
+    "repeat_runs": 2,
+    "required_test_ids": [
+      "RTL-001",
+      "RTL-002",
+      "RTL-003",
+      "RTL-004",
+      "RTL-005",
+      "RTL-006",
+      "RTL-007",
+      "RTL-008",
+      "RTL-009",
+      "RTL-010",
+      "RTL-011",
+      "RTL-012",
+      "RTL-013"
+    ]
+  },
+  "reporting": {
+    "format": "json",
+    "output_path": "results/stage1-results.json",
+    "include_matrix_properties": true,
+    "include_reachability": true,
+    "include_fault_results": true,
+    "include_validation_status": true,
+    "include_llm_performance_claims": false
+  }
+}
