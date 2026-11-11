@@ -1,3 +1,4 @@
+"""
 Reasoning Topology Lab (RTL) v0.1
 Stage 1 deterministic validation tests.
 
@@ -23,6 +24,8 @@ import math
 import sys
 import unittest
 from pathlib import Path
+
+
 
 
 # --------------------------------------------------
