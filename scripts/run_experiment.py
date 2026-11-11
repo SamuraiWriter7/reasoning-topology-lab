@@ -1,3 +1,4 @@
+"""
 Reasoning Topology Lab (RTL) v0.1
 Stage 1 deterministic experiment runner.
 
