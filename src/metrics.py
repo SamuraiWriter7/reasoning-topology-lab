@@ -1,3 +1,4 @@
+"""
 Reasoning Topology Lab (RTL) v0.1
 Deterministic structural evaluation metrics.
 
